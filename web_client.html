@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Realtime Data Viewer</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #0f0;
+      padding: 20px;
+    }
+    pre {
+      background: #000;
+      padding: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📡 Realtime Data</h2>
+  <pre id="dataBox">Waiting for data...</pre>
+
+  <script>
+    const ws = new WebSocket("ws://localhost:8765");
+    const box = document.getElementById("dataBox");
+
+    ws.onopen = () => box.textContent = "✅ Connected to server...";
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      box.textContent = JSON.stringify(data, null, 2);
+    };
+    ws.onclose = () => box.textContent = "❌ Connection closed";
+    ws.onerror = (err) => console.error("WebSocket Error:", err);
+  </script>
+</body>
+</html>
