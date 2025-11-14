@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 from flask import Flask, jsonify
 
 # CONFIG
-BROKER_HOST = os.getenv("MQTT_BROKER", "broker.hivemq.com")   # ganti broker lu (e.g. broker.hivemq.com)
+BROKER_HOST = os.getenv("MQTT_BROKER", "broker.hivemq.com")
 BROKER_PORT = int(os.getenv("MQTT_PORT", "1883"))
 TOPIC = os.getenv("MQTT_TOPIC", "iot/bandwidth")
 DB_PATH = os.getenv("DB_PATH", "data.db")

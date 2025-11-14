@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MQTT Over WebSocket Client</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #eee;
+      font-family: "Inter", sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #00ffc3;
+      font-weight: 600;
+    }
+    #status {
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+    #messages {
+      background: #000;
+      border: 1px solid #333;
+      padding: 10px;
+      height: 450px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .msg {
+      margin-bottom: 10px;
+    }
+    .topic {
+      color: #00b7ff;
+      font-weight: bold;
+    }
+    .payload {
+      color: #0f0;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>📡 MQTT Live Client (WebSocket)</h1>
+  <div id="status">Connecting...</div>
+  <div id="messages"></div>
+
+  <!-- ✅ load Paho MQTT script -->
+  <<script src="./paho-mqtt.js"></script>
+
+
+  <script>
+    // Pastikan script MQTT udah ke-load sebelum dijalankan
+    window.addEventListener("load", () => {
+      if (typeof Paho === "undefined") {
+        document.getElementById("status").textContent = "❌ MQTT script gagal diload";
+        console.error("Paho MQTT belum ke-load, cek koneksi atau CDN-nya!");
+        return;
+      }
+
+const broker = "broker.hivemq.com";
+const port = 8884; // ini port WSS (secure)
+const path = "/mqtt";
+const clientId = "webclient-" + Math.floor(Math.random() * 10000);
+      const statusEl = document.getElementById("status");
+      const msgEl = document.getElementById("messages");
+
+      console.log("🔌 Creating MQTT client...");
+      const client = new Paho.MQTT.Client(broker, port, path, clientId);
+
+
+      client.onConnectionLost = (resp) => {
+        statusEl.textContent = "❌ Connection lost. Reconnecting...";
+        console.error(resp.errorMessage);
+        setTimeout(connect, 2000);
+      };
+
+      client.onMessageArrived = (msg) => {
+        const t = msg.destinationName;
+        let p = msg.payloadString;
+        try {
+          p = JSON.stringify(JSON.parse(p), null, 2);
+        } catch {}
+        const el = document.createElement("div");
+        el.className = "msg";
+        el.innerHTML = `
+          <div class="topic">📍 ${t}</div>
+          <div class="payload">${p}</div>
+        `;
+        msgEl.appendChild(el);
+        msgEl.scrollTop = msgEl.scrollHeight;
+      };
+
+      function connect() {
+        statusEl.textContent = `Connecting to ws://${broker}:${port}/mqtt ...`;
+        client.connect({
+  useSSL: true,
+  onSuccess: () => {
+    console.log("✅ Connected securely via WSS");
+    client.subscribe("iot/#");
+            statusEl.textContent += ` — Subscribed to "${topic}"`;
+           },
+  onFailure: (err) => {
+    console.error("❌ Failed to connect:", err.errorMessage);
+  }
+});
+      }
+
+      connect();
+    });
+  </script>
+</body>
+</html>
